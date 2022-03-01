@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: friday
+      time: "08:00"
+      timezone: Europe/Berlin
+    labels:
+      - "dependencies"
+      - "automerge"
+    open-pull-requests-limit: 10
