@@ -24,21 +24,24 @@
   "scripts": {
     "fix": "yarn lint:prettier --write && yarn lint --fix",
     "lint": "eslint --ext .js --cache .",
-    "lint:prettier": "prettier \"**/*.{js,ts,json,md,yml}\"",
-    "semantic-release": "semantic-release"
+    "lint:prettier": "prettier \"**/*.{js,ts,json,md,yml}\" --ignore-path .gitignore",
+    "semantic-release": "semantic-release",
+    "test": "vitest"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.1",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^8.0.2",
     "@semantic-release/npm": "^9.0.1",
+    "c8": "^7.11.0",
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-prettier": "^4.0.0",
     "postcss": "^8.4.7",
     "postcss-syntax": "^0.36.2",
     "prettier": "^2.5.1",
-    "semantic-release": "^19.0.2"
+    "semantic-release": "^19.0.2",
+    "vitest": "^0.5.9"
   },
   "peerDependencies": {
     "postcss": "^8.4.7",
