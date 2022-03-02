@@ -1,9 +1,9 @@
 import { readFileSync } from "fs"
 import { describe, expect, it } from "vitest"
-import syntax from "."
+import syntax from "../lib"
 
 describe("syntax", () => {
-  const jsx = readFileSync("./components.jsx", "utf8")
+  const jsx = readFileSync("./test/fixtures/components.jsx", "utf8")
 
   it("Component", () => {
     const document = syntax().parse(jsx)
