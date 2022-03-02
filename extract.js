@@ -2,127 +2,44 @@
 
 const loadSyntax = require("postcss-syntax/load-syntax")
 
-function literal(source, callback) {
-  let insideString = false
-  let insideComment = false
-  let insideSingleLineComment = false
-  let strStartIndex
-  let openingQuote
+function literalParser(source, opts) {
+  const matches = [
+    ...source.matchAll(
+      // (?!\/\/)[^/\n]*?             ignore lines starting with a line comment
+      // <style +jsx ?[a-z]*>{`       opening tag with optional attributes — example: <style jsx global>{`
+      // ([\s\S]*?)                   the CSS — we include new lines by using `\s\S` instead of `.`
+      // `}<\/style>                  closing tag
+      /(?!\/\/)[^/\n]*?<style +jsx ?[a-z]*>{`([\s\S]*?)`}<\/style>/g
+    ),
+    ...source.matchAll(
+      // (?!\/\/)[^/\n]*?             ignore lines starting with a line comment
+      // \bcss(?:\.[a-z]+)?`          opening tag with optional property call — examples: css` or css.global`
+      // ((?:\\`|\${.*?}|[\s\S])*?)   the CSS — we consume escaped backticks and interpolations first to avoid unintentionally matching the closing tag
+      // `                            closing tag
+      /(?!\/\/)[^/\n]*?\bcss(?:\.[a-z]+)?`((?:\\`|\${.*?}|[\s\S])*?)`/g
+    ),
+  ]
 
-  for (let i = 0, l = source.length; i < l; i++) {
-    const currentChar = source[i]
+  return matches.map(match => {
+    const [style, css] = match
+    const { index: styleStartIndex } = match
+    const cssStartIndex = styleStartIndex + style.indexOf(css)
 
-    // Register the beginning of a comment
-    if (
-      !insideString &&
-      !insideComment &&
-      currentChar === "/" &&
-      source[i - 1] !== "\\" // escaping
-    ) {
-      // standard comments
-      if (source[i + 1] === "*") {
-        insideComment = true
-        continue
-      }
-      // single-line comments
-      if (source[i + 1] === "/") {
-        insideComment = true
-        insideSingleLineComment = true
-        continue
-      }
+    const result = {
+      startIndex: cssStartIndex,
+      content: css,
     }
 
-    if (insideComment) {
-      // Register the end of a standard comment
-      if (
-        !insideSingleLineComment &&
-        currentChar === "*" &&
-        source[i - 1] !== "\\" && // escaping
-        source[i + 1] === "/" &&
-        source[i - 1] !== "/" // don't end if it's /*/
-      ) {
-        insideComment = false
-        continue
-      }
-
-      // Register the end of a single-line comment
-      if (insideSingleLineComment && currentChar === "\n") {
-        insideComment = false
-        insideSingleLineComment = false
-        continue
-      }
-    }
-
-    // Register the beginning of a string
-    if (
-      !insideComment &&
-      !insideString &&
-      (currentChar === '"' || currentChar === "'" || currentChar === "`")
-    ) {
-      if (source[i - 1] === "\\") continue // escaping
-
-      openingQuote = currentChar
-      insideString = true
-
-      strStartIndex = i + openingQuote.length
-      continue
-    }
-
-    // Register the end of a string
-    if (insideString && currentChar === openingQuote) {
-      if (source[i - 1] === "\\") continue // escaping
-      insideString = false
-      if (i - strStartIndex > 1) {
-        callback(strStartIndex, i, openingQuote)
-      }
-      continue
-    }
-  }
-}
-
-function literalParser(source, opts, styles) {
-  styles = styles || []
-  let index = 0
-  literal(source, (startIndex, endIndex, quote) => {
-    if (quote !== "`") {
-      return
-    }
-
-    const previousChars = source.slice(startIndex - 7, startIndex) || ""
-    const isStyledJsx =
-      previousChars.includes("jsx") || previousChars.includes("css")
-
-    // Exit if the template string is not after "<styled jsx>{`" or "css`"
-    if (!isStyledJsx) {
-      return
-    }
-
-    const strSource = source.slice(startIndex, endIndex)
-
-    if (!strSource.trim()) {
-      return
-    }
-
-    const style = {
-      startIndex: startIndex,
-      content: strSource,
-      ignoreErrors: !/(?:^|\s+)styled-jsx(?:\.\w+|\(+[^()]*?\)+)*$/.test(
-        source.slice(index, startIndex - 1)
-      ),
-    }
-    index = endIndex
-
-    if (/(\\*)\${.*?}/.test(strSource) && !(RegExp.$1.length % 2)) {
-      style.syntax = loadSyntax(opts, __dirname)
-      style.lang = "template-literal"
+    const interpolationMatch = css.match(/(\\*)\${.*?}/)
+    if (interpolationMatch && interpolationMatch[1].length % 2 === 0) {
+      result.syntax = loadSyntax(opts, __dirname)
+      result.lang = "template-literal"
     } else {
-      style.lang = "css"
+      result.lang = "css"
     }
 
-    styles.push(style)
+    return result
   })
-
-  return styles
 }
 
 module.exports = literalParser
