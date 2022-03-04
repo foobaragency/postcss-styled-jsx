@@ -1,5 +1,5 @@
 {
-  "name": "@foobar-agency/postcss-styled-jsx",
+  "name": "postcss-styled-jsx",
   "version": "0.0.0-semantically-released",
   "description": "PostCSS syntax for parsing styled-jsx",
   "main": "./lib/index.js",
@@ -24,6 +24,7 @@
     "type": "git",
     "url": "https://github.com/foobaragency/postcss-styled-jsx"
   },
+  "author": "foobar Agency GmbH",
   "license": "MIT",
   "scripts": {
     "fix": "yarn lint:prettier --write && yarn lint --fix",
