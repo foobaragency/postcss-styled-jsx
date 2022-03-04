@@ -10,7 +10,7 @@
 ## Getting started
 
 ```bash
-npm install --save-dev @foobar-agency/postcss-styled-jsx
+npm install --save-dev postcss-styled-jsx
 ```
 
 ## Using with stylelint
@@ -19,6 +19,6 @@ npm install --save-dev @foobar-agency/postcss-styled-jsx
 // .stylelintrc.js
 module.exports = {
   extends: ["stylelint-config-recommended"],
-  customSyntax: "@foobar-agency/postcss-styled-jsx",
+  customSyntax: "postcss-styled-jsx",
 }
 ```
